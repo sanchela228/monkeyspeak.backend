@@ -5,7 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+Console.WriteLine("connectionString:_________");
+Console.WriteLine(connectionString);
 
 builder.Services.AddDbContext<Context>(options =>
     options.UseNpgsql(connectionString));
