@@ -9,8 +9,13 @@ builder.Configuration.AddEnvironmentVariables();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-Console.WriteLine("connectionString:_________");
-Console.WriteLine(connectionString);
+Console.WriteLine("=== Configuration Sources ===");
+
+var envConnection = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+var configConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+
+Console.WriteLine($"From ENV: {envConnection}");
+Console.WriteLine($"From Config: {configConnection}");
 
 builder.Services.AddDbContext<Context>(options =>
     options.UseNpgsql(connectionString));
