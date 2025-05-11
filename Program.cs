@@ -3,9 +3,15 @@ using Core.Database;
 using Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MonkeySpeak.Backend.Core.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
+
+builder.Services.Configure<App>(builder.Configuration.GetSection("App"));
+
+builder.Services.AddRazorPages();
+
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -18,9 +24,11 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
+
+app.MapRazorPages();
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
-
 
 var webSocketOptions = new WebSocketOptions
 {
@@ -43,8 +51,6 @@ app.Map("/ws", async context =>
 
 app.UseWebSockets();
 app.MapControllers();
-
-app.MapGet("/", () => "Hello World!");
 
 await ApplyMigrations(app);
 
