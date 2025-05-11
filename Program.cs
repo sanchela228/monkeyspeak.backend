@@ -51,8 +51,31 @@ app.Run();
 static async Task ApplyMigrations(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     var dbContext = scope.ServiceProvider.GetRequiredService<Context>();
-    await dbContext.Database.MigrateAsync();
+    
+    int maxRetries = 10;
+    int retryDelayMs = 5000;
+    
+    for (int i = 0; i < maxRetries; i++)
+    {
+        try
+        {
+            logger.LogInformation("Attempting to apply migrations (attempt {Attempt}/{MaxAttempts})...", 
+                i + 1, maxRetries);
+                
+            await dbContext.Database.MigrateAsync();
+            logger.LogInformation("Migrations applied successfully");
+            return;
+        }
+        catch (Npgsql.NpgsqlException ex) when (i < maxRetries - 1)
+        {
+            logger.LogWarning("Migration attempt failed: {Message}", ex.Message);
+            await Task.Delay(retryDelayMs);
+        }
+    }
+    
+    throw new Exception($"Failed to apply migrations after {maxRetries} attempts");
 }
 
 static async Task Echo(WebSocket webSocket)

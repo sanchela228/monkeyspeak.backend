@@ -6,7 +6,7 @@ using MonkeySpeak.Backend.Core.Http;
 
 namespace Core.Http.Controllers;
 
-public class Services(Context db) : ControllerBase
+public class Sessions(Context db) : ControllerBase
 {
     private readonly Session Service = new(db);
     
