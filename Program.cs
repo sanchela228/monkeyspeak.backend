@@ -4,12 +4,12 @@ using Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-// RUN POSTGRES
-// docker run --name local-pg -e POSTGRES_PASSWORD=local -p 5432:5432 -d postgres
-
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddDbContext<Context>();
+builder.Services.AddDbContext<Context>(options =>
+    options.UseNpgsql(connectionString));
+
 builder.Services.AddScoped<Session>();
 
 builder.Services.AddControllers();
