@@ -8,7 +8,7 @@ namespace Core.Http.Controllers;
 
 public class Sessions(Context db) : ControllerBase
 {
-    private readonly Session Service = new(db);
+    private readonly Session SessionService = new(db);
     
     [HttpPost]
     [Route("/api/sessions/verify")]
@@ -19,7 +19,7 @@ public class Sessions(Context db) : ControllerBase
             if ( db.Applications.Any(x => x.ApplicationId == request.ApplicationId) == false )
                 return BadRequest(new Response(false, "Application unrecognized."));
         
-            var session = await Service.GetSessionByCode(request.Code);
+            var session = await SessionService.GetSessionByCode(request.Code);
         
             if (session is null)
                 return BadRequest(new Response(false, "Session not found."));

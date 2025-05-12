@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MonkeySpeak.Backend.Data.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20250511130149_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250512114423_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -72,7 +72,6 @@ namespace MonkeySpeak.Backend.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Metadata")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("Status")

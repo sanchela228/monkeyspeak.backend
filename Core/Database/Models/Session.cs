@@ -20,5 +20,5 @@ public class Session
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ClosedAt { get; set; }
     public SessionStatus Status { get; set; } = SessionStatus.Active;
-    public string Metadata { get; set; }
+    public string? Metadata { get; set; }
 }

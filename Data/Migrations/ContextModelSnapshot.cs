@@ -69,7 +69,6 @@ namespace MonkeySpeak.Backend.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Metadata")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("Status")

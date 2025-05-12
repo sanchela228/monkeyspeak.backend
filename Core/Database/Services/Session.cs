@@ -5,49 +5,48 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Core.Services;
 
-public class Session
+public class Session(Context db)
 {
-    private readonly Context _db;
-    
-    public Session(Context db) => _db = db;
-    
-    public async Task<SessionModel> CreateSession( string ApplicationId, string? meta = null )
+    public async Task<SessionModel> CreateSession( string applicationId, Guid sessionId, string? meta = null )
     {
-        if (_db.Applications.Find(ApplicationId) == null) 
-            return null;
-        
-        var session = new SessionModel()
+        if (db.Applications.Any(x => x.ApplicationId == applicationId))
         {
-            ApplicationId = ApplicationId,
-        };
+            var session = new SessionModel()
+            {
+                ApplicationId = applicationId,
+                WebSocketSessionId = sessionId
+            };
             
-        _db.Sessions.Add(session);
-        await _db.SaveChangesAsync();
-        return session;
+            db.Sessions.Add(session);
+            await db.SaveChangesAsync();
+            return session;
+        }
+        
+        throw new Exception("Application unregistered.");
     }
     
     public async Task<SessionModel?> GetSessionByCode(string code)
     {
-        return await _db.Sessions
+        return await db.Sessions
             .FirstOrDefaultAsync(s => s.Code == code && s.Status == SessionStatus.Active);
     }
     
     public async Task CloseSession(Guid webSocketSessionId)
     {
-        var session = await _db.Sessions
+        var session = await db.Sessions
             .FirstOrDefaultAsync(s => s.WebSocketSessionId == webSocketSessionId);
             
         if (session != null)
         {
             session.Status = SessionStatus.Closed;
             session.ClosedAt = DateTime.UtcNow;
-            await _db.SaveChangesAsync();
+            await db.SaveChangesAsync();
         }
     }
     
     public async Task CleanupExpiredSessions(TimeSpan expirationTime)
     {
-        var expiredSessions = await _db.Sessions
+        var expiredSessions = await db.Sessions
             .Where(s => s.Status == SessionStatus.Active && 
                         s.CreatedAt < DateTime.UtcNow.Subtract(expirationTime))
             .ToListAsync();
@@ -58,6 +57,6 @@ public class Session
             session.ClosedAt = DateTime.UtcNow;
         }
         
-        await _db.SaveChangesAsync();
+        await db.SaveChangesAsync();
     }
 }
