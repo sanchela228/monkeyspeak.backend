@@ -57,11 +57,12 @@ public class WebsocketMiddleware(WebSocket ws, Context dbContext)
             
             var messageObj = JsonSerializer.Deserialize<SocketMessage>(message, options);
         
-            if (messageObj != null)
+            if (messageObj != null && messageObj.ApplicationId != null)
             {
                 try
                 {
-                    var handler = handlerFactory.GetHandler(messageObj.Type);
+                    var handler = handlerFactory.GetHandler(messageObj);
+                    
                     await handler.HandleAsync(webSocket, this, connectionId, messageObj, _sessions);
                 }
                 catch (NotSupportedException ex)
@@ -70,6 +71,11 @@ public class WebsocketMiddleware(WebSocket ws, Context dbContext)
                 }
             }
         }
+    }
+    
+    public async Task CloseSession(string target)
+    {
+        await connections[target].CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
     }
     
     public async Task SendMessage(SocketMessage message)

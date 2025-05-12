@@ -6,8 +6,8 @@ namespace Core.Websockets.MessageHandlers;
 
 public class CreateSession(Context dbContext) : ISocketMessageHandler
 {
-    public async Task HandleAsync(WebSocket webSocket, WebsocketMiddleware websocketMiddleware, string connectionId, 
-        SocketMessage message, Dictionary<Guid, List<string>> sessions)
+    public async Task HandleAsync(WebSocket webSocket, WebsocketMiddleware websocketMiddleware, 
+        string connectionId, SocketMessage message, Dictionary<Guid, List<string>> sessions)
     {
         var sessionService = new SessionService(dbContext);
         var sessionId = Guid.NewGuid();

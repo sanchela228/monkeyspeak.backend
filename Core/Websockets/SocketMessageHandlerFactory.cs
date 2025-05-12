@@ -11,12 +11,15 @@ public class SocketMessageHandlerFactory(Context dbContext)
         { SocketMessageType.CreateSession, new CreateSession(dbContext) },
     };
     
-    public ISocketMessageHandler GetHandler(SocketMessageType messageType)
+    public ISocketMessageHandler GetHandler(SocketMessage message)
     {
-        if (_handlers.TryGetValue(messageType, out var handler))
+        if (_handlers.TryGetValue(message.Type, out var handler))
         {
-            return handler;
+            if (dbContext.Applications.Any(x => x.ApplicationId == message.ApplicationId))
+                return handler;
+            
+            throw new Exception("Application unregistered.");
         }
-        throw new NotSupportedException($"No handler registered for message type: {messageType}");
+        throw new NotSupportedException($"No handler registered for message type: {message.Type}");
     }
 }

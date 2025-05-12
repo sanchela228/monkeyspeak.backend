@@ -9,20 +9,15 @@ public class Session(Context db)
 {
     public async Task<SessionModel> CreateSession( string applicationId, Guid sessionId, string? meta = null )
     {
-        if (db.Applications.Any(x => x.ApplicationId == applicationId))
+        var session = new SessionModel()
         {
-            var session = new SessionModel()
-            {
-                ApplicationId = applicationId,
-                WebSocketSessionId = sessionId
-            };
-            
-            db.Sessions.Add(session);
-            await db.SaveChangesAsync();
-            return session;
-        }
+            ApplicationId = applicationId,
+            WebSocketSessionId = sessionId
+        };
         
-        throw new Exception("Application unregistered.");
+        db.Sessions.Add(session);
+        await db.SaveChangesAsync();
+        return session;
     }
     
     public async Task<SessionModel?> GetSessionByCode(string code)

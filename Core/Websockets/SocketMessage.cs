@@ -3,7 +3,11 @@ namespace Core.Websockets;
 public enum SocketMessageType
 {
     CreateSession,
-    CloseSession
+    ConnectSession,
+    ConnectClient,
+    ReturnAnswer,
+    CloseMyConnection,
+    CloseConnection
 }
 
 public class SocketMessage
