@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Core.Websockets;
 
 public enum SocketMessageType
@@ -5,6 +7,7 @@ public enum SocketMessageType
     CreateSession,
     ConnectSession,
     ConnectClient,
+    DeliveryOffer,
     ReturnAnswer,
     CloseMyConnection,
     CloseConnection

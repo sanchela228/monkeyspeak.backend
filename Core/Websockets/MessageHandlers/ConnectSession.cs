@@ -1,4 +1,5 @@
 using System.Net.WebSockets;
+using System.Text.Json;
 using Core.Database;
 
 namespace Core.Websockets.MessageHandlers;
@@ -10,17 +11,20 @@ public class ConnectSession(Context dbContext) : ISocketMessageHandler
     {
         if (message.SessionId is null || !sessions.ContainsKey( (Guid) message.SessionId ))
             return;
-        
-        await websocketMiddleware.SendMessage(new SocketMessage
+
+        if (sessions.TryGetValue((Guid)message.SessionId, out List<string>? items))
         {
-            Type = SocketMessageType.ConnectSession,
-            SessionId = message.SessionId,
-            ApplicationId = message.ApplicationId,
-            Sender = message.Sender,
-            Target =  message.Sender,
-            Content = sessions[ (Guid) message.SessionId].ToString()
-        });
-        
-        sessions.Add( (Guid) message.SessionId, [connectionId]);
+            await websocketMiddleware.SendMessage(new SocketMessage
+            {
+                Type = SocketMessageType.ConnectSession,
+                SessionId = message.SessionId,
+                ApplicationId = message.ApplicationId,
+                Sender = connectionId,
+                Target = connectionId,
+                Content = JsonSerializer.Serialize(items)
+            });
+
+            sessions[(Guid)message.SessionId].Add(connectionId);
+        }
     }
 }

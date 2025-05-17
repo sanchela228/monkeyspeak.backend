@@ -9,6 +9,12 @@ public class SocketMessageHandlerFactory(Context dbContext)
     private readonly Dictionary<SocketMessageType, ISocketMessageHandler> _handlers = new()
     {
         { SocketMessageType.CreateSession, new CreateSession(dbContext) },
+        { SocketMessageType.ConnectSession, new ConnectSession(dbContext) },
+        { SocketMessageType.DeliveryOffer, new DeliveryOffer(dbContext) },
+        { SocketMessageType.ReturnAnswer, new ReturnAnswer(dbContext) },
+        { SocketMessageType.ConnectClient, new ConnectClient(dbContext) },
+        { SocketMessageType.CloseConnection, new CloseConnection(dbContext) },
+        { SocketMessageType.CloseMyConnection, new CloseMyConnection(dbContext) },
     };
     
     public ISocketMessageHandler GetHandler(SocketMessage message)

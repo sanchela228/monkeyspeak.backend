@@ -1,3 +1,4 @@
+using System.Net.WebSockets;
 using Core.Database;
 using Core.Services;
 using Core.Websockets;
@@ -12,7 +13,8 @@ public class App
     
     public Context DbContext { get; }
     
-    
+    static Dictionary<string, WebSocket> connections = new();
+    private static readonly Dictionary<Guid, List<string>> _sessions = new();
     
     public string BackendVersion { get; set; }
    
@@ -48,7 +50,7 @@ public class App
                 
                 var dbContext = scope.ServiceProvider.GetRequiredService<Context>();
                 
-                WebsocketMiddleware websocketMiddleware = new(webSocket, dbContext);
+                WebsocketMiddleware websocketMiddleware = new(webSocket, dbContext, connections, _sessions);
                 await websocketMiddleware.HandleRequest(context);
             }
             else context.Response.StatusCode = StatusCodes.Status400BadRequest;

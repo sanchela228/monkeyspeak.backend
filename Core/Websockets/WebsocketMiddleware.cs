@@ -1,16 +1,14 @@
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Core.Database;
 
 namespace Core.Websockets;
 
-public class WebsocketMiddleware(WebSocket ws, Context dbContext)
+public class WebsocketMiddleware(WebSocket ws, Context dbContext, Dictionary<string, WebSocket> connections, Dictionary<Guid, List<string>> sessions)
 {
-    Dictionary<string, WebSocket> connections = new();
-    private readonly Dictionary<Guid, List<string>> _sessions = new();
-    
     public async Task HandleRequest(HttpContext context)
     {
         var connectionId = Guid.NewGuid().ToString();
@@ -38,21 +36,33 @@ public class WebsocketMiddleware(WebSocket ws, Context dbContext)
 
         while (webSocket.State == WebSocketState.Open)
         {
-            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            using var memoryStream = new MemoryStream();
+            WebSocketReceiveResult result;
             
-            if (result.MessageType == WebSocketMessageType.Close)
+            do
             {
-                await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
-                break;
+                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+        
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                    return;
+                }
+        
+                memoryStream.Write(buffer, 0, result.Count);
             }
+            while (!result.EndOfMessage);
             
-            var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            var message = Encoding.UTF8.GetString(memoryStream.ToArray());
             Console.WriteLine($"Receive from {connectionId}: {message}");
             
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
-                Converters = { new JsonStringEnumConverter() }
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                Converters = { new JsonStringEnumConverter() },
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true,
             };
             
             var messageObj = JsonSerializer.Deserialize<SocketMessage>(message, options);
@@ -63,7 +73,7 @@ public class WebsocketMiddleware(WebSocket ws, Context dbContext)
                 {
                     var handler = handlerFactory.GetHandler(messageObj);
                     
-                    await handler.HandleAsync(webSocket, this, connectionId, messageObj, _sessions);
+                    await handler.HandleAsync(webSocket, this, connectionId, messageObj, sessions);
                 }
                 catch (NotSupportedException ex)
                 {
