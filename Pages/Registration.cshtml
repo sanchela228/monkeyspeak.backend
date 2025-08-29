@@ -1,0 +1,79 @@
+@page
+@model Pages.Registration
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="robots" content="index, follow">
+    <link rel="stylesheet" href="~/css/site.css"/>
+    <title>Регистрация</title>
+</head>
+<body>
+<div class="container">
+    <div class="inner-container">
+        <div class="logo">
+            <i class="fas fa-user-plus"></i>
+            <h1>Создать аккаунт</h1>
+        </div>
+
+        <form id="registrationForm">
+            <div class="form-group">
+                <label for="username">Имя пользователя</label>
+                <i class="fas fa-user"></i>
+                <input type="text" id="username" class="form-control" placeholder="Введите ваше имя" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email адрес</label>
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="email" class="form-control" placeholder="Введите ваш email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" class="form-control" placeholder="Создайте пароль" required>
+                <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Подтверждение пароля</label>
+                <i class="fas fa-lock"></i>
+                <input type="password" id="confirmPassword" class="form-control" placeholder="Повторите пароль" required>
+            </div>
+
+            <div class="terms">
+                <input type="checkbox" id="agreeTerms" required>
+                <label for="agreeTerms">Я согласен с <a href="#">условиями использования</a> и <a href="#">политикой конфиденциальности</a></label>
+            </div>
+
+            <button type="submit" class="btn-register">Зарегистрироваться</button>
+        </form>
+
+        <div class="divider">
+            <span>Или войти с помощью</span>
+        </div>
+
+        <div class="social-login">
+            <div class="social-btn facebook">
+                <i class="fab fa-facebook-f"></i>
+            </div>
+            <div class="social-btn google">
+                <i class="fab fa-google"></i>
+            </div>
+            <div class="social-btn twitter">
+                <i class="fab fa-twitter"></i>
+            </div>
+        </div>
+
+        <div class="login-link">
+            Уже есть аккаунт? <a href="#">Войти</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
