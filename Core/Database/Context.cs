@@ -6,7 +6,8 @@ public class Context : DbContext
 {
     public DbSet<Models.Session> Sessions { get; set; }
     public DbSet<Models.Application> Applications { get; set; }
-    
+    public DbSet<Models.Registration> Registrations { get; set; }
+
     public Context(DbContextOptions<Context> options) : base(options)
     {
     }
