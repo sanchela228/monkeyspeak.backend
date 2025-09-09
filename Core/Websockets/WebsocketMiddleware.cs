@@ -3,49 +3,52 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Core.Database;
+using ContextDatabase = Core.Database.Context;
 
 namespace Core.Websockets;
 
-public class WebsocketMiddleware(WebSocket ws, Context dbContext, Dictionary<string, WebSocket> connections, Dictionary<Guid, List<string>> sessions)
+public class WebsocketMiddleware(WebSocket ws, ContextDatabase dbContext, List<Connection> connections, 
+    List<Room> rooms)
 {
-    public async Task HandleRequest(HttpContext context)
+    public MessageDispatcher MessageDispatcher { get; } = new();
+    public async Task OpenWebsocketConnection(HttpContext context)
     {
-        var connectionId = Guid.NewGuid().ToString();
-        connections.Add(connectionId, ws);
+        var connection = new Connection(ws);
+        connections.Add(connection);
 
         try
         {
-            var handlerFactory = new SocketMessageHandlerFactory(dbContext);
-            await HandleWebSocket(connectionId, ws, handlerFactory);
+            MessageDispatcher.Configure(dbContext, connections, rooms, this);
+            await HandleWebSocket(connection);
         }
         catch (Exception e)
         {
             Console.WriteLine($"Websocket connect failed: {e.Message}");
+            connections.Remove(connection);
             throw;
         }
         finally
         {
-            connections.Remove(connectionId);
+            connections.Remove(connection);
         }
     }
 
-    private async Task HandleWebSocket(string connectionId, WebSocket webSocket, SocketMessageHandlerFactory handlerFactory)
+    private async Task HandleWebSocket(Connection connection)
     {
         var buffer = new byte[1024 * 4];
 
-        while (webSocket.State == WebSocketState.Open)
+        while (connection.WebSocket.State == WebSocketState.Open)
         {
             using var memoryStream = new MemoryStream();
             WebSocketReceiveResult result;
             
             do
             {
-                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                result = await connection.WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
         
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                    await connection.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
                     return;
                 }
         
@@ -54,43 +57,39 @@ public class WebsocketMiddleware(WebSocket ws, Context dbContext, Dictionary<str
             while (!result.EndOfMessage);
             
             var message = Encoding.UTF8.GetString(memoryStream.ToArray());
-            Console.WriteLine($"Receive from {connectionId}: {message}");
+            Console.WriteLine($"Receive from {connection.Id}: {message}");
             
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                Converters = { new JsonStringEnumConverter() },
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true,
+                // Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                // Converters = { new JsonStringEnumConverter() },
+                // ReadCommentHandling = JsonCommentHandling.Skip,
+                // AllowTrailingCommas = true,
             };
             
-            var messageObj = JsonSerializer.Deserialize<SocketMessage>(message, options);
-        
-            if (messageObj != null && messageObj.ApplicationId != null)
+            try
             {
-                try
+                var messageObj = JsonSerializer.Deserialize<Context>(message, options);
+
+                if (messageObj != null && messageObj.ApplicationId != null)
                 {
-                    var handler = handlerFactory.GetHandler(messageObj);
-                    
-                    await handler.HandleAsync(webSocket, this, connectionId, messageObj, sessions);
-                }
-                catch (NotSupportedException ex)
-                {
-                    Console.WriteLine($"Error handling message: {ex.Message}");
+                    MessageDispatcher.Dispatch(messageObj, connection);
                 }
             }
+            catch (NotSupportedException ex)
+            {
+                Console.WriteLine($"Error handling message: {ex.Message}");
+            }
+            
         }
     }
     
-    public async Task CloseSession(string target)
+    public async Task SendMessage(IMessage message, Connection conn)
     {
-        await connections[target].CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
-    }
-    
-    public async Task SendMessage(SocketMessage message)
-    {
-        var buffer = Encoding.UTF8.GetBytes( JsonSerializer.Serialize(message) );
-        await connections[message.Target].SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+        var context = Context.Create(message);
+        var buffer = Encoding.UTF8.GetBytes( JsonSerializer.Serialize<Context>(context) );
+        
+        await conn.WebSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 }

@@ -1,8 +1,8 @@
 using System.Net.WebSockets;
-using Core.Database;
 using Core.Services;
 using Core.Websockets;
 using Microsoft.EntityFrameworkCore;
+using ContextDatabase = Core.Database.Context;
 
 namespace MonkeySpeak.Backend.Core.Configurations;
 
@@ -13,9 +13,8 @@ public class App
     
     public Context DbContext { get; }
     
-    static Dictionary<string, WebSocket> connections = new();
-    private static readonly Dictionary<Guid, List<string>> _sessions = new();
-    
+    static List<Connection> connections = new();
+    static List<Room> rooms = new();
     public string BackendVersion { get; set; }
    
     public string FrontendVersion { get; set; }
@@ -27,7 +26,7 @@ public class App
     {
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         
-        builder.Services.AddDbContext<Context>(options =>
+        builder.Services.AddDbContext<ContextDatabase>(options =>
             options.UseNpgsql(connectionString));
         
         builder.Services.AddScoped<Session>();
@@ -37,7 +36,7 @@ public class App
         KeepAliveInterval = TimeSpan.FromMinutes(2)
     };
     
-    public static void InitWebsockets(WebApplication app)
+    public async static void InitWebsockets(WebApplication app)
     {
         app.UseWebSockets(webSocketOptions);
         
@@ -47,11 +46,11 @@ public class App
             {
                 using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
                 using var scope = app.Services.CreateScope();
+
+                var dbContext = scope.ServiceProvider.GetRequiredService<ContextDatabase>();
                 
-                var dbContext = scope.ServiceProvider.GetRequiredService<Context>();
-                
-                WebsocketMiddleware websocketMiddleware = new(webSocket, dbContext, connections, _sessions);
-                await websocketMiddleware.HandleRequest(context);
+                var websocketMiddleware = new WebsocketMiddleware(webSocket, dbContext, connections, rooms);
+                await websocketMiddleware.OpenWebsocketConnection(context);
             }
             else context.Response.StatusCode = StatusCodes.Status400BadRequest;
         });
@@ -63,7 +62,7 @@ public class App
     {
         using var scope = app.Services.CreateScope();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Context>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ContextDatabase>();
     
         await dbContext.Database.MigrateAsync();
     }
