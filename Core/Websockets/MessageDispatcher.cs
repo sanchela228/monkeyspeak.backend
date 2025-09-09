@@ -30,15 +30,27 @@ public class MessageDispatcher
 
         On<Messages.NoAuthCall.CreateSession>((msg, author) =>
         {
-            var room = new Room(author);
-            author.Status = Connection.StatusConnection.Connected;
-            
-            var sessionCreated = new Messages.NoAuthCall.SessionCreated()
+            var room = rooms.FirstOrDefault(room => room.IsCreator(author) && room.State == Room.RoomState.Waiting);
+
+            if (room != null)
             {
-                Value = room.Code
-            };
+                author.Status = Connection.StatusConnection.Connected;
+                author.Send(new Messages.NoAuthCall.SessionCreated()
+                {
+                    Value = room.Code
+                });
+            }
+            else
+            {
+                room = new Room(author);
+                rooms.Add(room);
             
-            author.Send(sessionCreated);
+                author.Status = Connection.StatusConnection.Connected;
+                author.Send(new Messages.NoAuthCall.SessionCreated()
+                {
+                    Value = room.Code
+                });
+            }
         });
     }
 }

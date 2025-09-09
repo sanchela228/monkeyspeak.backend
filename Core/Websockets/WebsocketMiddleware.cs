@@ -24,11 +24,18 @@ public class WebsocketMiddleware(WebSocket ws, ContextDatabase dbContext, List<C
         catch (Exception e)
         {
             Console.WriteLine($"Websocket connect failed: {e.Message}");
-            connections.Remove(connection);
             throw;
         }
         finally
         {
+            if (rooms.Count > 0)
+            {
+                var room = rooms.FirstOrDefault(x => x.IsCreator(connection));
+            
+                if (room != null)
+                    rooms.Remove(room);
+            }
+            
             connections.Remove(connection);
         }
     }
