@@ -30,6 +30,8 @@ public class MessageDispatcher
 
         On<Messages.NoAuthCall.CreateSession>((msg, author) =>
         {
+            author.PublicIp = msg.IpEndPoint;
+            
             var room = rooms.FirstOrDefault(room => room.IsCreator(author) && room.State == Room.RoomState.Waiting);
 
             if (room != null)
@@ -51,6 +53,38 @@ public class MessageDispatcher
                     Value = room.Code
                 });
             }
+        });
+
+        On<Messages.NoAuthCall.ConnectToSession>((msg, author) =>
+        {
+            author.PublicIp = msg.IpEndPoint;
+            
+            var room = rooms.FirstOrDefault(room => room.Code == msg.Code);
+
+            if (room == null || room.Connections.Count <= 0) 
+                return;
+            
+            author.Status = Connection.StatusConnection.Connectiong;
+                
+            connections.ForEach(conn =>
+            {
+                if ( !author.PublicIp.Equals(conn.PublicIp) )
+                {
+                    conn.Send(new Messages.NoAuthCall.HolePunching()
+                    {
+                        IpEndPoint = author.PublicIp,
+                        Value = room.Code
+                    });
+                        
+                    author.Send(new Messages.NoAuthCall.HolePunching()
+                    {
+                        IpEndPoint = conn.PublicIp,
+                        Value = room.Code
+                    });
+                }
+            });
+            
+            room.Connections.Add(author);
         });
     }
 }

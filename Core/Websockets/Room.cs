@@ -18,7 +18,7 @@ public class Room
         
         // TODO: CLEAR THIS
         
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
         var random = new Random();
         var strR = new StringBuilder(6);
     
@@ -38,6 +38,6 @@ public class Room
     public enum RoomState
     {
         Waiting,
-        Runing
+        Running
     }
 }

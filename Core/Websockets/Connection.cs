@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -8,6 +9,8 @@ public class Connection
 {
     public readonly Guid Id;
     public readonly WebSocket WebSocket;
+    
+    public string PublicIp { get; set; }
 
     public StatusConnection Status { get; set; }
 
@@ -25,12 +28,11 @@ public class Connection
         
         await WebSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
     }
-
-
-
+    
     public enum StatusConnection
     {
         Idle,
+        Connectiong,
         Connected,
     }
 }
