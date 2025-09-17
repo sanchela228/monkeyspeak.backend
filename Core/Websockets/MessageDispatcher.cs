@@ -64,7 +64,7 @@ public class MessageDispatcher
             if (room == null || room.Connections.Count <= 0) 
                 return;
             
-            author.Status = Connection.StatusConnection.Connectiong;
+            author.Status = Connection.StatusConnection.Connecting;
                 
             connections.ForEach(conn =>
             {
@@ -85,6 +85,11 @@ public class MessageDispatcher
             });
             
             room.Connections.Add(author);
+        });
+        
+        On<Messages.NoAuthCall.SuccessConnectedSession>((msg, author) =>
+        {
+            author.Status = Connection.StatusConnection.Connected;
         });
     }
 }

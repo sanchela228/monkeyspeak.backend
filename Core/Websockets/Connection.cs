@@ -32,7 +32,7 @@ public class Connection
     public enum StatusConnection
     {
         Idle,
-        Connectiong,
+        Connecting,
         Connected,
     }
 }
