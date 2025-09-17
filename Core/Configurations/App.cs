@@ -13,8 +13,8 @@ public class App
     
     public Context DbContext { get; }
     
-    static List<Connection> connections = new();
-    static List<Room> rooms = new();
+    public static List<Connection> connections = new();
+    public static List<Room> rooms = new();
     public string BackendVersion { get; set; }
    
     public string FrontendVersion { get; set; }
