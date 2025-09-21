@@ -1,4 +1,7 @@
+using System.Net;
+using System.Net.Sockets;
 using System.Net.WebSockets;
+using System.Text;
 using Core.Services;
 using Core.Websockets;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +59,36 @@ public class App
         });
         
         app.UseWebSockets();
+
+        Task.Run(RunUdpStunTest);
+    }
+
+    public static void RunUdpStunTest()
+    {
+        using (UdpClient udp = new UdpClient(3478))
+        {
+            IPEndPoint remoteEP = null;
+
+            while (true)
+            {
+                try
+                {
+                    byte[] data = udp.Receive(ref remoteEP);
+                    Console.WriteLine($"Got request from {remoteEP}");
+
+                    string response = $"{remoteEP.Address}:{remoteEP.Port}";
+                    byte[] respBytes = Encoding.UTF8.GetBytes(response);
+
+                    udp.Send(respBytes, respBytes.Length, remoteEP);
+                    remoteEP = null;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Server error: {ex.Message}");
+                    remoteEP = null;
+                }
+            }
+        }
     }
     
     public static async Task ApplyMigrations(WebApplication app)
