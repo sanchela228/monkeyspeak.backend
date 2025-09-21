@@ -79,8 +79,8 @@ public class App
                     string response = $"{remoteEP.Address}:{remoteEP.Port}";
                     byte[] respBytes = Encoding.UTF8.GetBytes(response);
 
-                    udp.Send(respBytes, respBytes.Length, remoteEP);
-                    remoteEP = null;
+                    int bytesSent = udp.Send(respBytes, respBytes.Length, remoteEP);
+                    Console.WriteLine($"Sent {bytesSent} bytes to {remoteEP}");
                 }
                 catch (Exception ex)
                 {
