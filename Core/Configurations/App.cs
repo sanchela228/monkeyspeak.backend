@@ -65,7 +65,7 @@ public class App
 
     public static void RunUdpStunTest()
     {
-        using (UdpClient udp = new UdpClient(3478))
+        using (UdpClient udp = new UdpClient(587))
         {
             IPEndPoint remoteEP = null;
 
