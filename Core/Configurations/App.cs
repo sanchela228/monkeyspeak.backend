@@ -58,6 +58,17 @@ public class App
             else context.Response.StatusCode = StatusCodes.Status400BadRequest;
         });
         
+        // DEMO TEST WHILE UDP NOT WORK
+        app.MapGet("/get-public-endpoint", async (HttpContext context) =>
+        {
+           
+            var remoteIp = context.Connection.RemoteIpAddress;
+            var remotePort = context.Connection.RemotePort;
+
+            string response = $"{remoteIp}:{remotePort}";
+            await context.Response.WriteAsync(response);
+        });
+        
         app.UseWebSockets();
 
         Task.Run(RunUdpStunTest);
