@@ -76,9 +76,11 @@ public class App
 
     public static void RunUdpStunTest()
     {
+        Console.WriteLine("Starting UDP STUN server on port 3478...");
         using (UdpClient udp = new UdpClient(3478))
         {
             IPEndPoint remoteEP = null;
+            Console.WriteLine("UDP STUN server started successfully on port 3478");
 
             while (true)
             {
