@@ -86,6 +86,21 @@ section.download .backend-version_text{
     
     color: #a4a4a4;
     margin: 0;
-    margin-top: 20px;
     text-align: center;
+}
+
+section.download .download-link{
+    display: flex;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    color: white;
+}
+section.download .download-link svg path{
+    fill: white;
+}
+section.download .download-link span{
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    color: white;
 }
