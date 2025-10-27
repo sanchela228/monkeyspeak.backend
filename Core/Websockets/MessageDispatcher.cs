@@ -61,8 +61,15 @@ public class MessageDispatcher
             
             var room = rooms.FirstOrDefault(room => room.Code == msg.Code);
 
-            if (room == null || room.Connections.Count <= 0) 
+            if (room == null || room.Connections.Count <= 0)
+            {
+                author.Send(new Messages.NoAuthCall.ErrorConnectToSession()
+                {
+                    Value = room.Code
+                });
+                
                 return;
+            }
             
             author.Status = Connection.StatusConnection.Connecting;
                 
