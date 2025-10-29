@@ -65,7 +65,7 @@ public class MessageDispatcher
             {
                 author.Send(new Messages.NoAuthCall.ErrorConnectToSession()
                 {
-                    Value = room.Code
+                    Value = ""
                 });
                 
                 return;
