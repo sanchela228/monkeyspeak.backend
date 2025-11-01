@@ -27,4 +27,9 @@
       <Folder Include="wwwroot\fonts\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="wwwroot\download\versions\9\win64\MonkeySpeakSetup.exe" />
+      <_ContentIncludedByDefault Remove="wwwroot\download\versions\9\win64\source_win64_9.zip" />
+    </ItemGroup>
+
 </Project>
